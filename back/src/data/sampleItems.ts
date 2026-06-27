@@ -1,4 +1,4 @@
-import type { Item } from '../types/item.js';
+import type { Item } from '../types/item.ts';
 
 /** Itens de exemplo para experimentar o algoritmo. */
 export const sampleItems: Item[] = [

@@ -1,4 +1,4 @@
-import { knapsack } from './algorithms/knapsack.js';
+import { knapsack } from './algorithms/knapsack.ts';
 import { sampleItems, sampleCapacity } from './data/sampleItems.js';
 
 const resultado = knapsack(sampleItems, sampleCapacity);

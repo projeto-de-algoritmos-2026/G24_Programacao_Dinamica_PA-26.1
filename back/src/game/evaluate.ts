@@ -1,41 +1,62 @@
-import type { Item, KnapsackResult } from '../types/item.js';
-import { knapsack } from '../algorithms/knapsack.js';
+import { knapsack } from '../algorithms/knapsack.ts';
+import type { SushiItem } from './menu.ts';
 
-export interface PlateEvaluation {
-  fits: boolean;
-  totalWeight: number;
-  totalValue: number;
-  satisfied: boolean;
-  optimal: KnapsackResult;
-  scorePercent: number;
+export interface EvaluationResult {
+  ok: boolean;
+  message: string;
+  selectedItems: SushiItem[];
+  selectedWeight: number;
+  selectedValue: number;
+  optimalValue: number;
+  capacity: number;
+  hunger: number;
 }
 
 export function evaluatePlate(
-  catalog: Item[],
+  menu: SushiItem[],
   selectedNames: string[],
   capacity: number,
-  hunger: number
-): PlateEvaluation {
-  const byName = new Map(catalog.map((it) => [it.name, it]));
-  const selected: Item[] = [];
-  for (const name of selectedNames) {
-    const item = byName.get(name);
-    if (item) {
-      selected.push(item);
-    }
+  hunger: number,
+): EvaluationResult {
+  const normalizedNames = Array.from(
+    new Set(selectedNames.map((name) => name.trim()).filter(Boolean)),
+  );
+
+  const selectedItems = menu.filter((item) => {
+    return normalizedNames.includes(item.id) || normalizedNames.includes(item.name);
+  });
+
+  const selectedWeight = selectedItems.reduce((sum, item) => sum + item.weight, 0);
+  const selectedValue = selectedItems.reduce((sum, item) => sum + item.value, 0);
+
+  const optimal = knapsack(menu, capacity) as {
+    maxValue?: number;
+  };
+
+  const optimalValue = typeof optimal.maxValue === 'number' ? optimal.maxValue : 0;
+  const overCapacity = selectedWeight > capacity;
+  const satisfied = selectedValue >= hunger;
+  const perfect = !overCapacity && selectedValue === optimalValue && satisfied;
+
+  let message = '';
+  if (perfect) {
+    message = `Perfeito! Você saciou ${selectedValue} de fome e encontrou a melhor combinação para esse cliente.`;
+  } else if (overCapacity) {
+    message = `Você passou do tamanho do prato. O cliente ficou sem comer o suficiente.`;
+  } else if (satisfied) {
+    message = `Você saciou ${selectedValue} de fome, mas ainda dá para melhorar a combinação.`;
+  } else {
+    message = `Ainda ficou abaixo da fome do cliente. Tente escolher itens mais valiosos.`;
   }
 
-  const totalWeight = selected.reduce((sum, it) => sum + it.weight, 0);
-  const totalValue = selected.reduce((sum, it) => sum + it.value, 0);
-  const fits = totalWeight <= capacity;
-
-  const optimal = knapsack(catalog, capacity);
-  const satisfied = fits && totalValue >= hunger;
-
-  const scorePercent =
-    optimal.maxValue > 0 && fits
-      ? Math.round((totalValue / optimal.maxValue) * 100)
-      : 0;
-
-  return { fits, totalWeight, totalValue, satisfied, optimal, scorePercent };
+  return {
+    ok: perfect,
+    message,
+    selectedItems,
+    selectedWeight,
+    selectedValue,
+    optimalValue,
+    capacity,
+    hunger,
+  };
 }

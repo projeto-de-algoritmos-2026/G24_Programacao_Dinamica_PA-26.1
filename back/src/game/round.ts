@@ -1,17 +1,38 @@
-import type { Item } from '../types/item.js';
-import { knapsack } from '../algorithms/knapsack.js';
+import { sushiMenu, defaultPlateCapacity } from './menu.ts';
+import type { SushiItem } from './menu.ts';
 
-export interface Customer {
+export interface CustomerRound {
+  name: string;
+  prompt: string;
+  plateSize: number;
   hunger: number;
 }
 
-export function generateCustomer(items: Item[], capacity: number): Customer {
-  const best = knapsack(items, capacity).maxValue;
-  if (best <= 0) {
-    return { hunger: 0 };
-  }
+const customerNames = ['Ana', 'Bruno', 'Carla', 'Davi', 'Elisa', 'Fabio'];
 
-  const min = Math.ceil(best * 0.5);
-  const hunger = min + Math.floor(Math.random() * (best - min + 1));
-  return { hunger };
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+export function generateCustomer(
+  _menu: SushiItem[] = sushiMenu,
+  capacity: number = defaultPlateCapacity,
+): { capacity: number; customer: CustomerRound } {
+  const plateSize = clamp(capacity + randomInt(-1, 2), 4, 12);
+  const hunger = randomInt(10, 20);
+  const name = customerNames[randomInt(0, customerNames.length - 1)];
+
+  return {
+    capacity: plateSize,
+    customer: {
+      name,
+      prompt: `${name} chegou à bancada com um prato de tamanho ${plateSize}. Ele está com ${hunger} de fome. Escolha os sushi que saciam o máximo sem passar o tamanho do prato.`,
+      plateSize,
+      hunger,
+    },
+  };
 }

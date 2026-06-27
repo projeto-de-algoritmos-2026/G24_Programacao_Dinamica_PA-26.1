@@ -1,14 +1,54 @@
-import type { Item } from '../types/item.js';
+export interface SushiItem {
+  id: string;
+  name: string;
+  weight: number;
+  value: number;
+  description: string;
+}
 
-export const sushiMenu: Item[] = [
-  { name: 'Hossomaki', weight: 2, value: 3},
-  { name: 'Uramaki', weight: 3, value: 5},
-  { name: 'Niguiri', weight: 4, value: 6},
-  { name: 'Temaki', weight: 6, value: 9},
-  { name: 'Sashimi', weight: 5, value: 8},
-  { name: 'Hot Roll', weight: 7, value: 11},
-  { name: 'Gunkan', weight: 4, value: 7},
-  { name: 'Combo Especial', weight: 10, value: 16},
+export const sushiMenu: SushiItem[] = [
+  {
+    id: 'niguiri',
+    name: 'Niguirizushi',
+    weight: 2,
+    value: 8,
+    description: 'Pequeno e muito saboroso.',
+  },
+  {
+    id: 'temaki',
+    name: 'Temaki',
+    weight: 3,
+    value: 10,
+    description: 'Rolinho de peixe com arroz.',
+  },
+  {
+    id: 'uramaki',
+    name: 'Uramaki',
+    weight: 4,
+    value: 13,
+    description: 'Sushi com arroz por fora.',
+  },
+  {
+    id: 'sashimi',
+    name: 'Sashimi',
+    weight: 2,
+    value: 7,
+    description: 'Fatia de peixe fresca.',
+  },
+  {
+    id: 'harumaki',
+    name: 'Harumaki',
+    weight: 3,
+    value: 9,
+    description: 'Rolinho crocante com legumes.',
+  },
+  {
+    id: 'onigiri',
+    name: 'Onigiri',
+    weight: 2,
+    value: 6,
+    description: 'Bolinho de arroz com recheio.',
+  },
 ];
 
-export const defaultPlateCapacity = 12;
+export const defaultPlateCapacity = 8;

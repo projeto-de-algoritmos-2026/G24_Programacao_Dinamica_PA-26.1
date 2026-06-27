@@ -1,14 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Algoritmo da Mochila</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main class="center">
-    <h1>algoritmo da mochila</h1>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bancada de Sushi</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="card hero">
+        <h1>Bancada de Sushi</h1>
+        <p>
+          Cada cliente chega com um prato de tamanho aleatório e com fome diferente.
+          Seu objetivo é escolher os sushi que saciam o máximo de fome sem passar do limite do prato.
+        </p>
+      </section>
+
+      <section class="card">
+        <div id="round-counter"></div>
+        <h2 id="round-title">Carregando...</h2>
+        <p id="round-capacity"></p>
+        <p id="round-instructions"></p>
+      </section>
+
+      <form id="game-form" class="card">
+        <div id="item-list"></div>
+
+        <div class="actions">
+          <button id="submit-btn" type="submit">Enviar pedido</button>
+          <button id="next-round-btn" type="button" hidden>Próximo cliente</button>
+        </div>
+      </form>
+
+      <section id="status" class="card status"></section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
 </html>

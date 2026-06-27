@@ -1,4 +1,4 @@
-import type { Item, KnapsackResult } from '../types/item.js';
+import type { Item, KnapsackResult } from '../types/item.ts';
 
 export function knapsack(items: Item[], capacity: number): KnapsackResult {
   if (capacity < 0 || !Number.isInteger(capacity)) {
