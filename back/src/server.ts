@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { knapsack } from './algorithms/knapsack.ts';
-import { sushiMenu, defaultPlateCapacity } from './game/menu.ts';
+import { sushiMenu, defaultPlateCapacity, regenerateMenu } from './game/menu.ts';
 import { generateCustomer } from './game/round.ts';
 import { evaluatePlate } from './game/evaluate.ts';
 
@@ -82,8 +82,9 @@ const server = createServer(async (req, res) => {
 
   try {
     if (method === 'GET' && routePath === '/game/menu') {
+      // Nova partida: sorteia um cardápio novo (status aleatórios por faixa).
       sendJson(res, 200, {
-        menu: sushiMenu,
+        menu: regenerateMenu(),
         defaultPlateCapacity,
       });
       return;
@@ -92,12 +93,10 @@ const server = createServer(async (req, res) => {
     if (method === 'POST' && routePath === '/game/round') {
       const body = await readJson(req);
       const capacity = Number(body.capacity ?? defaultPlateCapacity);
-      const customer = generateCustomer(sushiMenu, capacity);
 
-      sendJson(res, 200, {
-        capacity,
-        customer,
-      });
+      // generateCustomer já retorna { capacity, customer } com prato e fome
+      // aleatórios — repassamos direto pra não aninhar duas vezes.
+      sendJson(res, 200, generateCustomer(sushiMenu, capacity));
       return;
     }
 
