@@ -4,8 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { getMenu } from './game/menu.ts';
-import { createRound } from './game/round.ts';
-import { evaluatePlate } from './game/evaluate.ts';
+import { createRound, evaluatePlate } from './game/round.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
