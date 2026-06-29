@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bancada de Sushi</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="hud">
+      <div class="hud__item">
+        <span class="hud__label">Tempo</span>
+        <strong id="round-timer">30</strong>
+        <span class="hud__unit">s</span>
+      </div>
+
+      <div class="hud__item">
+        <span class="hud__label">Pontos</span>
+        <strong id="player-score">0</strong>
+      </div>
+    </div>
+
+    <main class="app">
+      <section class="card hero">
+        <h1>Bancada de Sushi</h1>
+        <p>
+          Cada cliente chega com um prato de tamanho aleatório e com fome diferente.
+          Seu objetivo é escolher os sushi que saciam o máximo de fome sem passar do limite do prato.
+        </p>
+
+        <div class="hero__actions">
+          <button id="start-btn" type="button">COMEÇAR</button>
+        </div>
+      </section>
+
+      <div id="game-area" hidden>
+        <section class="card">
+          <div id="round-counter"></div>
+          <h2 id="round-title">Carregando...</h2>
+          <p id="round-capacity"></p>
+          <p id="round-instructions"></p>
+        </section>
+
+        <form id="game-form" class="card">
+          <div id="item-list"></div>
+
+          <div class="actions">
+            <button id="submit-btn" type="submit">Enviar pedido</button>
+          </div>
+        </form>
+
+        <section id="status" class="card status"></section>
+      </div>
+
+      <div id="rules-modal" class="modal" hidden aria-hidden="true">
+        <div class="modal__content" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+          <button
+            id="rules-close"
+            class="modal__close"
+            type="button"
+            aria-label="Fechar"
+            onclick="closeRulesModal()"
+          >
+            ×
+          </button>
+          <h2 id="rules-title">Como funciona</h2>
+          <ul>
+            <li>Você recebe clientes com um prato com limite de capacidade.</li>
+            <li>Escolha os itens que maximizam a saciedade sem passar do limite do prato.</li>
+            <li>Você tem 30 segundos para decidir cada rodada.</li>
+            <li>Se o tempo acabar, o cliente fica de saco cheio e você perde 1 ponto.</li>
+            <li>No final, o jogo mostra a melhor combinação possível para cada cliente.</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <script src="/app.js"></script>
+    <script>
+      function openRulesModal() {
+        const rulesModal = document.getElementById("rules-modal");
+        if (!rulesModal) return;
+
+        rulesModal.hidden = false;
+        rulesModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+      }
+
+      function closeRulesModal() {
+        const rulesModal = document.getElementById("rules-modal");
+        if (!rulesModal) return;
+
+        rulesModal.hidden = true;
+        rulesModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("modal-open");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const startBtn = document.getElementById("start-btn");
+        const gameArea = document.getElementById("game-area");
+        const rulesBtn = document.getElementById("rules-btn");
+        const rulesModal = document.getElementById("rules-modal");
+        const rulesClose = document.getElementById("rules-close");
+        const rulesContent = document.querySelector(".modal__content");
+
+        if (startBtn && gameArea) {
+          startBtn.addEventListener("click", () => {
+            gameArea.hidden = false;
+            startBtn.hidden = true;
+          });
+        }
+
+        if (rulesBtn) {
+          rulesBtn.addEventListener("click", openRulesModal);
+        }
+
+        if (rulesClose) {
+          rulesClose.addEventListener("click", closeRulesModal);
+        }
+
+        if (rulesModal) {
+          rulesModal.addEventListener("click", (event) => {
+            if (event.target === rulesModal) {
+              closeRulesModal();
+            }
+          });
+        }
+
+        if (rulesContent) {
+          rulesContent.addEventListener("click", (event) => {
+            event.stopPropagation();
+          });
+        }
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeRulesModal();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
