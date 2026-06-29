@@ -1,141 +1,104 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { knapsack } from './algorithms/knapsack.ts';
-import { sushiMenu, defaultPlateCapacity, regenerateMenu } from './game/menu.ts';
-import { generateCustomer } from './game/round.ts';
+import { getMenu } from './game/menu.ts';
+import { createRound } from './game/round.ts';
 import { evaluatePlate } from './game/evaluate.ts';
 
-const PORT = Number(process.env.PORT ?? 3000);
-const frontDir = path.resolve(process.cwd(), '../front');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDir = path.resolve(__dirname, '../../front');
 
-function sendJson(res: ServerResponse, statusCode: number, body: unknown): void {
-  res.writeHead(statusCode, {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  });
-  res.end(JSON.stringify(body));
+const mimeTypes: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+};
+
+async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknown>> {
+  const chunks: Buffer[] = [];
+
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  const raw = Buffer.concat(chunks).toString('utf8').trim();
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
 }
 
-async function sendFile(res: ServerResponse, filePath: string): Promise<void> {
-  try {
-    const data = await readFile(filePath);
-    const extension = path.extname(filePath);
-    const mimeTypes: Record<string, string> = {
-      '.html': 'text/html; charset=utf-8',
-      '.css': 'text/css; charset=utf-8',
-      '.js': 'application/javascript; charset=utf-8',
-      '.json': 'application/json; charset=utf-8',
-    };
+async function sendJson(res: ServerResponse, statusCode: number, data: unknown) {
+  res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify(data));
+}
 
-    res.writeHead(200, {
-      'Content-Type': mimeTypes[extension] ?? 'application/octet-stream',
-    });
-    res.end(data);
+async function sendFile(res: ServerResponse, filePath: string) {
+  try {
+    const content = await readFile(filePath);
+    const ext = path.extname(filePath);
+    const contentType = mimeTypes[ext] ?? 'application/octet-stream';
+
+    res.writeHead(200, { 'Content-Type': contentType });
+    res.end(content);
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('Arquivo não encontrado');
+    res.end('Not found');
   }
 }
 
-function readJson(req: IncomingMessage): Promise<any> {
-  return new Promise((resolve, reject) => {
-    let data = '';
+export function createApp() {
+  return createServer(async (req, res) => {
+    const url = new URL(req.url ?? '/', 'http://localhost');
 
-    req.on('data', (chunk) => {
-      data += chunk;
-      if (data.length > 1e6) {
-        req.destroy();
-        reject(new Error('Corpo da requisição muito grande.'));
-      }
-    });
+    if (req.method === 'GET' && url.pathname === '/game/menu') {
+      return sendJson(res, 200, {
+        menu: getMenu(),
+        defaultPlateCapacity: 20,
+      });
+    }
 
-    req.on('end', () => {
-      if (!data) {
-        resolve({});
-        return;
-      }
+    if (req.method === 'POST' && url.pathname === '/game/round') {
+      const body = await readJsonBody(req);
+      const capacity = Number(body.capacity ?? 20);
+      return sendJson(res, 200, createRound(capacity));
+    }
 
-      try {
-        resolve(JSON.parse(data));
-      } catch {
-        reject(new Error('JSON inválido.'));
-      }
-    });
+    if (req.method === 'POST' && url.pathname === '/game/evaluate') {
+      const body = await readJsonBody(req);
+      const menu = getMenu();
+      const selectedNames = Array.isArray(body.selectedNames)
+        ? body.selectedNames.filter((name): name is string => typeof name === 'string')
+        : [];
+      const capacity = Number(body.capacity ?? 20);
 
-    req.on('error', reject);
+      return sendJson(res, 200, evaluatePlate(menu, selectedNames, capacity));
+    }
+
+    if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
+      return sendFile(res, path.join(frontendDir, 'index.html'));
+    }
+
+    const requestedPath = url.pathname === '/' ? '/index.html' : url.pathname;
+    const safePath = path.join(frontendDir, requestedPath.replace(/^\/+/, ''));
+    const resolvedPath = path.resolve(safePath);
+
+    if (resolvedPath.startsWith(frontendDir)) {
+      return sendFile(res, resolvedPath);
+    }
+
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Not found');
   });
 }
-
-const server = createServer(async (req, res) => {
-  const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
-  const routePath = url.pathname;
-  const method = req.method ?? 'GET';
-
-  if (method === 'OPTIONS') {
-    sendJson(res, 204, {});
-    return;
-  }
-
-  try {
-    if (method === 'GET' && routePath === '/game/menu') {
-      // Nova partida: sorteia um cardápio novo (status aleatórios por faixa).
-      sendJson(res, 200, {
-        menu: regenerateMenu(),
-        defaultPlateCapacity,
-      });
-      return;
-    }
-
-    if (method === 'POST' && routePath === '/game/round') {
-      const body = await readJson(req);
-      const capacity = Number(body.capacity ?? defaultPlateCapacity);
-
-      // generateCustomer já retorna { capacity, customer } com prato e fome
-      // aleatórios — repassamos direto pra não aninhar duas vezes.
-      sendJson(res, 200, generateCustomer(sushiMenu, capacity));
-      return;
-    }
-
-    if (method === 'POST' && routePath === '/game/evaluate') {
-      const body = await readJson(req);
-      const selectedNames = Array.isArray(body.selectedNames) ? body.selectedNames : [];
-      const capacity = Number(body.capacity ?? defaultPlateCapacity);
-      const hunger = Number(body.hunger ?? 0);
-
-      sendJson(res, 200, evaluatePlate(sushiMenu, selectedNames, capacity, hunger));
-      return;
-    }
-
-    if (method === 'POST' && routePath === '/algorithms/knapsack') {
-      const body = await readJson(req);
-      const items = Array.isArray(body.items) ? body.items : sushiMenu;
-      const capacity = Number(body.capacity ?? defaultPlateCapacity);
-
-      sendJson(res, 200, knapsack(items, capacity));
-      return;
-    }
-
-    if (method === 'GET' && (routePath === '/' || routePath === '/index.html')) {
-      await sendFile(res, path.join(frontDir, 'index.html'));
-      return;
-    }
-
-    if (method === 'GET') {
-      const requestedFile = path.join(frontDir, routePath.replace(/^\/+/, '') || 'index.html');
-      await sendFile(res, requestedFile);
-      return;
-    }
-
-    sendJson(res, 404, { error: 'Rota não encontrada.' });
-  } catch (err) {
-    sendJson(res, 400, { error: (err as Error).message });
-  }
-});
-
-server.listen(PORT, () => {
-  console.log(`🎮 Jogo rodando em http://localhost:${PORT}`);
-});

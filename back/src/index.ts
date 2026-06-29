@@ -1,9 +1,8 @@
-import { knapsack } from './algorithms/knapsack.ts';
-import { sampleItems, sampleCapacity } from './data/sampleItems.js';
+import { createApp } from './server.ts';
 
-const resultado = knapsack(sampleItems, sampleCapacity);
+const port = Number(process.env.PORT ?? 3000);
+const app = createApp();
 
-console.log(`Capacidade da mochila: ${sampleCapacity}`);
-console.log(`Valor máximo: ${resultado.maxValue}`);
-console.log(`Peso usado: ${resultado.totalWeight}`);
-console.log(`Itens escolhidos: ${resultado.selected.map((i) => i.name).join(', ')}`);
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
+});

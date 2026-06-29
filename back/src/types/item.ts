@@ -4,6 +4,10 @@ export interface Item {
   value: number;
 }
 
+export interface SushiItem extends Item {
+  id: string;
+}
+
 export interface KnapsackResult {
   maxValue: number;
   totalWeight: number;

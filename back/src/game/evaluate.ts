@@ -1,5 +1,5 @@
 import { knapsack } from '../algorithms/knapsack.ts';
-import type { SushiItem } from './menu.ts';
+import type { SushiItem } from '../types/item.ts';
 
 export interface EvaluationResult {
   ok: boolean;
@@ -9,14 +9,12 @@ export interface EvaluationResult {
   selectedValue: number;
   optimalValue: number;
   capacity: number;
-  hunger: number;
 }
 
 export function evaluatePlate(
   menu: SushiItem[],
   selectedNames: string[],
   capacity: number,
-  hunger: number,
 ): EvaluationResult {
   const normalizedNames = Array.from(
     new Set(selectedNames.map((name) => name.trim()).filter(Boolean)),
@@ -29,24 +27,23 @@ export function evaluatePlate(
   const selectedWeight = selectedItems.reduce((sum, item) => sum + item.weight, 0);
   const selectedValue = selectedItems.reduce((sum, item) => sum + item.value, 0);
 
-  const optimal = knapsack(menu, capacity) as {
-    maxValue?: number;
-  };
+  const safeCapacity = Math.max(1, Math.floor(Number(capacity ?? 20)));
+  const optimal = knapsack(menu, safeCapacity);
+  const optimalValue = optimal.maxValue;
 
-  const optimalValue = typeof optimal.maxValue === 'number' ? optimal.maxValue : 0;
-  const overCapacity = selectedWeight > capacity;
-  const satisfied = selectedValue >= hunger;
-  const perfect = !overCapacity && selectedValue === optimalValue && satisfied;
+  const overCapacity = selectedWeight > safeCapacity;
+  const perfect = !overCapacity && selectedValue === optimalValue;
 
   let message = '';
+
   if (perfect) {
-    message = `Perfeito! Você saciou ${selectedValue} de fome e encontrou a melhor combinação para esse cliente.`;
+    message = 'Perfeito! Você encontrou a melhor combinação para esse prato.';
   } else if (overCapacity) {
-    message = `Você passou do tamanho do prato. O cliente ficou sem comer o suficiente.`;
-  } else if (satisfied) {
-    message = `Você saciou ${selectedValue} de fome, mas ainda dá para melhorar a combinação.`;
+    message = 'Você passou do tamanho do prato.';
+  } else if (selectedValue > 0) {
+    message = 'Você fez uma escolha válida, mas ainda dá para melhorar a combinação.';
   } else {
-    message = `Ainda ficou abaixo da fome do cliente. Tente escolher itens mais valiosos.`;
+    message = 'Você não escolheu itens úteis para esse prato.';
   }
 
   return {
@@ -56,7 +53,6 @@ export function evaluatePlate(
     selectedWeight,
     selectedValue,
     optimalValue,
-    capacity,
-    hunger,
+    capacity: safeCapacity,
   };
 }

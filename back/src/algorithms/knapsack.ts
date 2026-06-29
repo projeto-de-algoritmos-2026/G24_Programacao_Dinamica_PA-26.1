@@ -1,41 +1,48 @@
-import type { Item, KnapsackResult } from '../types/item.ts';
+import type { SushiItem } from '../types/item.ts';
 
-export function knapsack(items: Item[], capacity: number): KnapsackResult {
-  if (capacity < 0 || !Number.isInteger(capacity)) {
-    throw new Error('A capacidade deve ser um inteiro maior ou igual a zero.');
-  }
+export interface KnapsackResult {
+  maxValue: number;
+  selectedItems: SushiItem[];
+}
 
+export function knapsack(items: SushiItem[], capacity: number): KnapsackResult {
+  const safeCapacity = Math.max(0, Math.floor(Number(capacity ?? 0)));
   const n = items.length;
 
-  const dp: number[][] = Array.from({ length: n + 1 }, () =>
-    new Array<number>(capacity + 1).fill(0)
-  );
+  const dp = Array.from({ length: n + 1 }, () => Array(safeCapacity + 1).fill(0));
+  const take = Array.from({ length: n + 1 }, () => Array(safeCapacity + 1).fill(false));
 
-  for (let i = 1; i <= n; i++) {
-    const { weight, value } = items[i - 1];
-    for (let c = 0; c <= capacity; c++) {
-      dp[i][c] = dp[i - 1][c]; // não pega o item i
-      if (weight <= c) {
-        const withItem = dp[i - 1][c - weight] + value; // pega o item i
-        if (withItem > dp[i][c]) {
-          dp[i][c] = withItem;
-        }
+  for (let i = 1; i <= n; i += 1) {
+    const item = items[i - 1];
+
+    for (let currentCapacity = 0; currentCapacity <= safeCapacity; currentCapacity += 1) {
+      const withoutItem = dp[i - 1][currentCapacity];
+      const withItem =
+        item.weight <= currentCapacity
+          ? dp[i - 1][currentCapacity - item.weight] + item.value
+          : -Infinity;
+
+      if (withItem > withoutItem) {
+        dp[i][currentCapacity] = withItem;
+        take[i][currentCapacity] = true;
+      } else {
+        dp[i][currentCapacity] = withoutItem;
       }
     }
   }
 
-  const selected: Item[] = [];
-  let c = capacity;
-  for (let i = n; i > 0; i--) {
-    if (dp[i][c] !== dp[i - 1][c]) {
-      const item = items[i - 1];
-      selected.push(item);
-      c -= item.weight;
+  const selectedItems: SushiItem[] = [];
+  let remainingCapacity = safeCapacity;
+
+  for (let i = n; i > 0; i -= 1) {
+    if (take[i][remainingCapacity]) {
+      selectedItems.push(items[i - 1]);
+      remainingCapacity -= items[i - 1].weight;
     }
   }
-  selected.reverse();
 
-  const totalWeight = selected.reduce((sum, it) => sum + it.weight, 0);
-
-  return { maxValue: dp[n][capacity], totalWeight, selected };
+  return {
+    maxValue: dp[n][safeCapacity],
+    selectedItems: selectedItems.reverse(),
+  };
 }

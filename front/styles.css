@@ -1,80 +1,237 @@
+:root {
+  --brown-900: #2f1a12;
+  --brown-800: #4b2a1a;
+  --brown-700: #6b3b22;
+  --brown-600: #8a4f2a;
+  --brown-500: #a7693b;
+  --cream: #f7ebdb;
+  --cream-2: #fff3e6;
+  --gold: #c89a4d;
+  --text: #2f1a12;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f7fb;
-  color: #222;
+  min-height: 100vh;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: var(--text);
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(rgba(47, 26, 18, 0.35), rgba(47, 26, 18, 0.35)),
+    url("./imgs/aki-phoi-canh-2-deviant.jpg") center/cover no-repeat;
+  filter: blur(1px) brightness(0.75) saturate(0.85);
+  transform: scale(1.05);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, rgba(47, 26, 18, 0.62), rgba(47, 26, 18, 0.4));
 }
 
 .app {
-  max-width: 760px;
-  margin: 40px auto;
-  padding: 20px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
 }
 
 .card {
-  background: white;
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: rgba(247, 235, 219, 0.95);
+  border: 2px solid rgba(106, 58, 33, 0.5);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+  margin-bottom: 20px;
 }
 
 .hero {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
+  text-align: center;
+  padding: 28px 24px;
 }
 
-#round-counter {
-  font-weight: bold;
-  color: #2563eb;
-  margin-bottom: 6px;
+.hero h1 {
+  margin: 0 0 10px;
+  font-size: 2rem;
+  color: var(--brown-900);
+}
+
+.hero p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--brown-800);
+  margin-bottom: 18px;
+}
+
+.hero__actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.button--secondary {
+  background: linear-gradient(135deg, #a86e3d, #6d3c22);
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--cream);
+  background: linear-gradient(135deg, var(--brown-700), var(--brown-900));
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
+  filter: brightness(1.05);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+#start-btn,
+#submit-btn {
+  min-width: 150px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  background: linear-gradient(135deg, var(--brown-600), var(--brown-900));
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+#item-list {
+  display: grid;
+  gap: 12px;
 }
 
 .item-card {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  margin-bottom: 8px;
-  cursor: pointer;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 243, 230, 0.9);
+  border: 1px solid rgba(139, 81, 42, 0.3);
 }
 
-.item-card input {
+.item-card input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #2563eb;
+  accent-color: var(--brown-700);
 }
 
-.actions {
+.hud {
+  position: fixed;
+  top: 16px;
+  right: 16px;
   display: flex;
   gap: 10px;
-  margin-top: 12px;
+  z-index: 1000;
 }
 
-button {
-  padding: 10px 14px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.hud__item {
+  background: rgba(247, 235, 219, 0.95);
+  border: 1px solid rgba(106, 58, 33, 0.35);
+  border-radius: 999px;
+  padding: 8px 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
 }
 
-button:hover {
-  background: #1d4ed8;
+.hud__label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brown-700);
 }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+#round-timer,
+#player-score {
+  color: var(--brown-900);
+  font-weight: 700;
 }
 
 .status {
-  background: #eef6ff;
+  background: rgba(255, 247, 239, 0.95);
+}
+
+#game-form.is-blocked {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: none;
+  z-index: 2000;
+}
+
+.modal__content {
+  position: relative;
+  width: min(560px, 100%);
+  background: #f8ebdc;
+  border: 2px solid #6d3c22;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  color: #2f1a12;
+}
+
+.modal__content h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.modal__content ul {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 1.2rem;
+  background: #6d3c22;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
